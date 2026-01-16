@@ -12,24 +12,28 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
-
 app.use(express.static(path.join(__dirname, 'public')));
- 
+
+// Serve index.html
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+// PDF endpoint
 app.post('/download-pdf', async (req, res) => {
   try {
     const { url } = req.body;
 
-    const browser = await chromium.launch();
+    // Launch headless browser
+    const browser = await chromium.launch({ args: ['--no-sandbox'] }); // <-- important for Render
     const page = await browser.newPage();
 
     await page.goto(url, { waitUntil: 'networkidle' });
 
+    // Take full-page screenshot as PNG buffer
     const screenshot = await page.screenshot({ fullPage: true });
 
+    // Get page dimensions
     const { width, height } = await page.evaluate(() => ({
       width: document.documentElement.scrollWidth,
       height: document.documentElement.scrollHeight
@@ -37,16 +41,21 @@ app.post('/download-pdf', async (req, res) => {
 
     await browser.close();
 
+    // Create jsPDF document
     const pdf = new jsPDF({
       orientation: height > width ? 'portrait' : 'landscape',
       unit: 'px',
       format: [width, height]
     });
 
-    pdf.addImage(screenshot, 'PNG', 0, 0, width, height);
+    // Convert screenshot buffer to base64 for jsPDF
+    const imgBase64 = screenshot.toString('base64');
+    pdf.addImage(imgBase64, 'PNG', 0, 0, width, height);
 
+    // Output PDF as buffer
     const buffer = Buffer.from(pdf.output('arraybuffer'));
 
+    // Send correct headers
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', 'attachment; filename="page.pdf"');
     res.send(buffer);
@@ -57,9 +66,9 @@ app.post('/download-pdf', async (req, res) => {
   }
 });
 
-
 const PORT = process.env.PORT || 3000;
 
+// Correct console log
 app.listen(PORT, () => {
-  console.log('✅ App running on port ${PORT}');
+  console.log(`✅ App running on port ${PORT}`);
 });
