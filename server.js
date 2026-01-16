@@ -25,10 +25,22 @@ app.post('/download-pdf', async (req, res) => {
     const { url } = req.body;
 
     // Launch headless browser
-    const browser = await chromium.launch({ args: ['--no-sandbox', '--disable-gpu'] }); // <-- important for Render
+    const browser = await chromium.launch({ 
+      headless: true,
+      args: ['--no-sandbox', '--disable-gpu'] }); // <-- important for Render
     const page = await browser.newPage();
 
-    await page.goto(url, { waitUntil: 'networkidle' });
+    // await page.goto(url, { waitUntil: 'networkidle' });
+
+    if(html) {
+      await page.setContent(html, { waitUntil: 'networkidle' });
+    } else if (url) {
+      await page.goto(url, { waitUntil: 'networkidle'});
+    } else {
+      throw new Error('No cintent provided');
+    }
+
+    await page.waitForTimeout(1000);
 
     // Take full-page screenshot as PNG buffer
     const screenshot = await page.screenshot({ fullPage: true });
