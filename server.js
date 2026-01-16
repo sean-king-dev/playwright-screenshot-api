@@ -49,13 +49,19 @@ app.post('/download-pdf', async (req, res) => {
     });
 
     // Convert screenshot buffer to base64 for jsPDF
-    const imgBase64 = screenshot.toString('base64');
-    pdf.addImage(imgBase64, 'PNG', 0, 0, width, height);
+    // const imgBase64 = screenshot.toString('base64');
+    // pdf.addImage(imgBase64, 'PNG', 0, 0, width, height);
+
+    pdf.addImage(screenshot.toString('base64'), 'PNG', 0, 0, width, height);
 
     // Output PDF as buffer
     const pdfOutput = pdf.output('datauristring');
-    const base64 = pdfOutput.split(',')[1];
-    const buffer = Buffer.from(base64, 'base64');
+    // const base64 = pdfOutput.split(',')[1];
+    // const buffer = Buffer.from(base64, 'base64');
+
+    const buffer = Buffer.from(pdfOutput.split(',')[1], 'base64');
+
+
     // const buffer = Buffer.from(pdf.output('arraybuffer'));
 
     // Send correct headers
