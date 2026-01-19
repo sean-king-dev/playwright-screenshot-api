@@ -9,7 +9,7 @@ document.getElementById('download').onclick = async () => {
 
     const blob = await response.blob();
     const link = document.createElement('a');
-    link.href = URL.createdObjectURL(blob);
+    link.href = URL.createObjectURL(blob);
     link.download = 'page-pdf';
     link.click();
 }
