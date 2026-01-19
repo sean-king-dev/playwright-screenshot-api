@@ -6,7 +6,10 @@ import { jsPDF } from 'jspdf';
 const app = express();
 
 // Middlewares
-app.use(cors());
+app.use(cors({
+  origin: 'https://dev.kingseducation.com'
+}));
+
 app.use(express.json());
 
 // Optional: root route for sanity check
